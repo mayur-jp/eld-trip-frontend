@@ -1,0 +1,71 @@
+@import "leaflet/dist/leaflet.css";
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* Duty status colors */
+  --color-off-duty: #22c55e;
+  --color-sleeper: #3b82f6;
+  --color-driving: #ef4444;
+  --color-on-duty: #f59e0b;
+
+  /* Duty status — light backgrounds */
+  --color-off-duty-light: #dcfce7;
+  --color-sleeper-light: #dbeafe;
+  --color-driving-light: #fee2e2;
+  --color-on-duty-light: #fef3c7;
+
+  /* Duty status — dark text */
+  --color-off-duty-dark: #166534;
+  --color-sleeper-dark: #1e40af;
+  --color-driving-dark: #991b1b;
+  --color-on-duty-dark: #92400e;
+
+  /* Layout dimensions */
+  --sidebar-width: 30%;
+  --sidebar-min-width: 320px;
+  --page-max-width: 1400px;
+  --form-max-width: 640px;
+  --log-max-width: 1024px;
+  --header-height: 64px;
+
+  /* SVG Grid */
+  --grid-left-margin: 120px;
+  --grid-right-margin: 80px;
+  --grid-row-height: 40px;
+  --grid-bar-height: 30px;
+  --grid-bar-padding: 5px;
+  --grid-total-width: 960px;
+  --grid-total-height: 200px;
+}
+
+@media print {
+  @page {
+    size: landscape;
+    margin: 0.5in;
+  }
+
+  body {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .print-hide {
+    display: none !important;
+  }
+
+  .log-sheet-day {
+    page-break-after: always;
+    break-after: page;
+  }
+
+  .log-sheet-day:last-child {
+    page-break-after: avoid;
+  }
+
+  .log-sheet-card {
+    box-shadow: none !important;
+  }
+}

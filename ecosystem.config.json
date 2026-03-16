@@ -1,0 +1,8 @@
+{
+    "apps": [
+        {
+            "name": "eld-trip-frontend",
+            "script": "npm run serve:production"
+        }
+    ]
+}

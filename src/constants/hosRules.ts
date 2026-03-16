@@ -1,0 +1,15 @@
+export const MAX_DRIVING_HOURS = 11;
+export const MAX_ON_DUTY_HOURS = 14;
+export const REQUIRED_REST_HOURS = 10;
+export const MAX_CYCLE_HOURS = 70;
+export const CYCLE_DAYS = 8;
+export const SHORT_BREAK_HOURS = 0.5;
+export const DRIVING_BEFORE_BREAK = 8;
+export const FUEL_STOP_MINUTES = 30;
+export const REST_STOP_MINUTES = 30;
+export const PICKUP_MINUTES = 60;
+export const DROPOFF_MINUTES = 60;
+export const CYCLE_RESET_HOURS = 34;
+export const FUEL_STOP_INTERVAL_MILES = 1000;
+export const PRE_TRIP_INSPECTION_MINUTES = 15;
+export const POST_TRIP_INSPECTION_MINUTES = 15;

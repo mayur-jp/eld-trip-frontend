@@ -1,23 +1,15 @@
+/* eslint-disable react-refresh/only-export-components */
 import {
   createContext,
   useCallback,
   useContext,
-  useEffect,
   useMemo,
   useState,
 } from "react";
 import type { ReactNode } from "react";
 
-import type { TripResponse } from "@/types/trip";
+import type { TripListItem, TripResponse } from "@/types/trip";
 import { deleteTrip, getTripsList } from "@/api/tripApi";
-
-export interface TripListItem {
-  id: string;
-  title: string;
-  subtitle: string;
-  createdAt: string;
-  source: "local" | "backend";
-}
 
 interface TripsContextValue {
   trips: TripListItem[];
@@ -28,8 +20,6 @@ interface TripsContextValue {
 }
 
 const TripsContext = createContext<TripsContextValue | null>(null);
-
-const STORAGE_KEY = "eldTripPlanner.trips.v1";
 
 function buildTripListItem(trip: TripResponse): TripListItem {
   const firstStop = trip.stops[0]?.locationName ?? "Trip start";
@@ -45,52 +35,7 @@ function buildTripListItem(trip: TripResponse): TripListItem {
     title,
     subtitle,
     createdAt: trip.createdAt,
-    source: "local",
   };
-}
-
-function safeParseTrips(raw: string | null): TripListItem[] {
-  if (!raw) return [];
-  try {
-    const parsed = JSON.parse(raw) as unknown;
-    if (!Array.isArray(parsed)) return [];
-    return parsed
-      .filter((item): item is TripListItem => {
-        if (typeof item !== "object" || item === null) return false;
-        const record = item as Record<string, unknown>;
-        return (
-          typeof record.id === "string" &&
-          typeof record.title === "string" &&
-          typeof record.subtitle === "string" &&
-          typeof record.createdAt === "string"
-        );
-      })
-      .map((item) => ({
-        ...item,
-        source: item.source === "backend" ? "backend" : "local",
-      }));
-  } catch {
-    return [];
-  }
-}
-
-function persistTrips(trips: TripListItem[]) {
-  window.localStorage.setItem(STORAGE_KEY, JSON.stringify(trips));
-}
-
-function mergeTrips(current: TripListItem[], incoming: TripListItem[]): TripListItem[] {
-  const byId = new Map<string, TripListItem>();
-  for (const t of incoming) byId.set(t.id, t);
-  for (const t of current) {
-    if (!byId.has(t.id)) byId.set(t.id, t);
-  }
-
-  return Array.from(byId.values()).sort((a, b) => {
-    const aTime = Date.parse(a.createdAt);
-    const bTime = Date.parse(b.createdAt);
-    if (!Number.isNaN(aTime) && !Number.isNaN(bTime)) return bTime - aTime;
-    return b.createdAt.localeCompare(a.createdAt);
-  });
 }
 
 interface TripsProviderProps {
@@ -98,26 +43,28 @@ interface TripsProviderProps {
 }
 
 export function TripsProvider({ children }: TripsProviderProps) {
-  const [trips, setTrips] = useState<TripListItem[]>(() =>
-    safeParseTrips(window.localStorage.getItem(STORAGE_KEY)),
-  );
-
-  useEffect(() => {
-    persistTrips(trips);
-  }, [trips]);
+  const [trips, setTrips] = useState<TripListItem[]>([]);
 
   const addTripFromResponse = useCallback((trip: TripResponse) => {
     const item = buildTripListItem(trip);
-    setTrips((prev) => mergeTrips(prev, [item]));
+    setTrips((prev) => {
+      const byId = new Map<string, TripListItem>(prev.map((t) => [t.id, t]));
+      byId.set(item.id, item);
+      return Array.from(byId.values()).sort((a, b) => {
+        const aTime = Date.parse(a.createdAt);
+        const bTime = Date.parse(b.createdAt);
+        if (!Number.isNaN(aTime) && !Number.isNaN(bTime)) return bTime - aTime;
+        return b.createdAt.localeCompare(a.createdAt);
+      });
+    });
   }, []);
 
   const hydrateTrips = useCallback(async () => {
-    // Mixed strategy: keep local history immediately, then merge backend results when available.
     try {
       const backendTrips = await getTripsList();
-      setTrips((prev) => mergeTrips(prev, backendTrips));
+      setTrips(backendTrips);
     } catch {
-      // Ignore hydration failures; local history remains usable.
+      // If backend is unavailable, keep in-memory trips for this session.
     }
   }, []);
 
@@ -130,7 +77,7 @@ export function TripsProvider({ children }: TripsProviderProps) {
       // Re-hydrate so UI matches server state if delete failed.
       try {
         const backendTrips = await getTripsList();
-        setTrips((prev) => mergeTrips(prev, backendTrips));
+        setTrips(backendTrips);
       } catch {
         // ignore
       }

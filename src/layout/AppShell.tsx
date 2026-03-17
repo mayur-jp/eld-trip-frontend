@@ -21,6 +21,7 @@ export default function AppShell() {
   }, [hydrateTrips]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsDrawerOpen(false);
   }, [location.pathname]);
 
@@ -29,12 +30,12 @@ export default function AppShell() {
 
   return (
     <div className={APP_SHELL_ROOT}>
-      <aside className={APP_SIDEBAR_FIXED} aria-label="Trip navigation">
+      <aside className={`${APP_SIDEBAR_FIXED} print-hide`} aria-label="Trip navigation">
         <LeftSidebar />
       </aside>
 
       {isDrawerOpen && (
-        <div className="lg:hidden fixed inset-0 z-50">
+        <div className="lg:hidden fixed inset-0 z-50 print-hide">
           <button
             type="button"
             className="absolute inset-0 bg-black/30"
@@ -49,7 +50,7 @@ export default function AppShell() {
 
       <div className={APP_MAIN}>
         {/* Mobile-only hamburger bar */}
-          <div className="sticky top-0 z-[2000] h-12 border-b border-slate-200 bg-white px-4 flex items-center lg:hidden">
+          <div className="sticky top-0 z-[2000] h-12 border-b border-slate-200 bg-white px-4 flex items-center lg:hidden print-hide">
           <button
             type="button"
             className="inline-flex items-center justify-center h-9 w-9 rounded-md border border-slate-300 text-slate-700 hover:bg-slate-50"

@@ -1,8 +1,16 @@
 import type { Location } from "@/types/common";
 import type { DailyLog, DutyEntry, LogTotals } from "@/types/log";
-import { DutyStatus, StopType, type RouteInfo, type TripInput, type TripResponse, type TripStop, type RouteSegment } from "@/types/trip";
+import {
+  DutyStatus,
+  StopType,
+  type RouteInfo,
+  type RouteSegment,
+  type TripInput,
+  type TripListItem,
+  type TripResponse,
+  type TripStop,
+} from "@/types/trip";
 import { axiosInstance } from "@/api/axiosInstance";
-import type { TripListItem } from "@/context/TripsContext";
 
 function transformLocationInput(location: Location): Record<string, unknown> {
   return {
@@ -172,7 +180,6 @@ function transformTripListItem(raw: Record<string, unknown>): TripListItem {
     createdAt,
     title: `${from} → ${to}`,
     subtitle: `${Math.round(miles)} mi • ${days} day${days === 1 ? "" : "s"}`,
-    source: "backend",
   };
 }
 

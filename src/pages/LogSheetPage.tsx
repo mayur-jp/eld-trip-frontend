@@ -67,14 +67,14 @@ export default function LogSheetPage() {
 
       {effectiveSelected && (
         <div className="mt-6 print-hide">
-          <DailyLogSheet log={effectiveSelected} />
+          <DailyLogSheet log={effectiveSelected} mode="screen" />
         </div>
       )}
 
       <div className="hidden print:block">
         {effectiveLogs.map((log) => (
           <div key={log.id} className="log-sheet-day">
-            <DailyLogSheet log={log} />
+            <DailyLogSheet log={log} mode="print" />
           </div>
         ))}
       </div>

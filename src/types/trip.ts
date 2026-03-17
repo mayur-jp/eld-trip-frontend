@@ -79,6 +79,18 @@ export interface TripStop {
 }
 
 /**
+ * Compact trip metadata for the trips sidebar list (`GET /trips/`).
+ *
+ * This is API-backed and is intentionally not persisted locally.
+ */
+export interface TripListItem {
+  id: string;
+  title: string;
+  subtitle: string;
+  createdAt: string;
+}
+
+/**
  * Full trip planning response returned by the backend and stored in TripContext.
  *
  * Field names are camelCase; the API layer is responsible for mapping from

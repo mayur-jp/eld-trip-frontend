@@ -42,12 +42,14 @@ export function LocationAutocomplete({
 
   useEffect(() => {
     if (initialValue) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setInputValue(initialValue.label);
     }
   }, [initialValue]);
 
   useEffect(() => {
     if (suggestions.length > 0) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setIsOpen(true);
       setActiveIndex(0);
     } else {

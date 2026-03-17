@@ -16,7 +16,7 @@ export function useTrip(): UseTripReturn {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { setTripResult } = useTripContext();
-  const { addTripFromResponse } = useTripsContext();
+  const { addTripFromResponse, hydrateTrips } = useTripsContext();
 
   const submitTrip = useCallback(
     async (input: TripInput): Promise<TripResponse> => {
@@ -26,6 +26,8 @@ export function useTrip(): UseTripReturn {
         const result = await planTrip(input);
         setTripResult(result);
         addTripFromResponse(result);
+        // Re-sync the sidebar from the backend (no local persistence).
+        void hydrateTrips();
         return result;
       } catch (err) {
         const message =
@@ -36,7 +38,7 @@ export function useTrip(): UseTripReturn {
         setIsLoading(false);
       }
     },
-    [addTripFromResponse, setTripResult],
+    [addTripFromResponse, hydrateTrips, setTripResult],
   );
 
   const clearError = useCallback(() => {

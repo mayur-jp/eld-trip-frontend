@@ -98,7 +98,6 @@ export default function TripDetailsPage() {
           stops={trip.stops}
           selectedStopId={selectedStopId}
           onStopClick={handleStopClick}
-          onViewLogsClick={handleViewLogsClick}
         />
       </section>
 

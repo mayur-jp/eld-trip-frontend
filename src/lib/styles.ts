@@ -19,7 +19,7 @@ export const APP_MAIN_TOPBAR =
   "sticky top-0 z-30 h-14 border-b border-slate-200 bg-white px-4 flex items-center gap-3 lg:hidden";
 
 export const APP_MAIN_SCROLL =
-  "px-6 py-6";
+  "px-5 py-5";
 
 export const CARD = "bg-white border border-slate-200 rounded-lg shadow-sm";
 

@@ -1,22 +1,83 @@
-import { useEffect, useMemo, useRef } from "react";
-import { MapContainer, TileLayer } from "react-leaflet";
+import { useCallback, useEffect, useMemo, useRef } from "react";
+import { MapContainer, TileLayer, useMap } from "react-leaflet";
 import type { LatLngBoundsExpression, Map as LeafletMap } from "leaflet";
+
+import { LocateFixed } from "lucide-react";
 
 import { RoutePolyline } from "@/components/map/RoutePolyline";
 import { StopMarker } from "@/components/map/StopMarker";
-import { Button } from "@/components/ui/Button";
 import { DEFAULT_CENTER, DEFAULT_ZOOM, STOP_ZOOM, TILE_ATTRIBUTION, TILE_URL } from "@/constants/mapConfig";
 import type { TripStop, RouteInfo } from "@/types/trip";
 import { StopType } from "@/types/trip";
 
 const MAP_HIDDEN_STOP_TYPES: ReadonlySet<StopType> = new Set<StopType>([]);
+const FIT_BOUNDS_OPTIONS = { padding: [40, 40] as [number, number] };
+
+const LEGEND_ITEMS: { color: string; label: string }[] = [
+  { color: "#16a34a", label: "Start" },
+  { color: "#dc2626", label: "Drop-off" },
+  { color: "#0891b2", label: "Pickup" },
+  { color: "#d97706", label: "Fuel Stop" },
+  { color: "#7c3aed", label: "Rest Break" },
+  { color: "#2563eb", label: "Mandatory Rest" },
+  { color: "#4f46e5", label: "Cycle Reset" },
+  { color: "#6b7280", label: "End" },
+];
+
+interface MapControllerProps {
+  bounds: LatLngBoundsExpression | undefined;
+  selectedStop: TripStop | undefined;
+}
+
+function MapController({ bounds, selectedStop }: MapControllerProps) {
+  const map = useMap();
+  const hasFitted = useRef(false);
+
+  useEffect(() => {
+    if (!bounds) {
+      return;
+    }
+
+    const fitNow = () => {
+      map.invalidateSize();
+      map.fitBounds(bounds, FIT_BOUNDS_OPTIONS);
+    };
+
+    if (!hasFitted.current) {
+      // First fit: retry until the container has a real size
+      const tryFit = () => {
+        const size = map.getSize();
+        if (size.x > 0 && size.y > 0) {
+          fitNow();
+          hasFitted.current = true;
+        } else {
+          requestAnimationFrame(tryFit);
+        }
+      };
+      requestAnimationFrame(tryFit);
+    } else {
+      fitNow();
+    }
+  }, [map, bounds]);
+
+  useEffect(() => {
+    if (!selectedStop) {
+      return;
+    }
+    map.setView(
+      { lat: selectedStop.latitude, lng: selectedStop.longitude },
+      STOP_ZOOM,
+    );
+  }, [map, selectedStop]);
+
+  return null;
+}
 
 interface TripMapProps {
   route: RouteInfo;
   stops: TripStop[];
   selectedStopId: number | null;
   onStopClick: (stopId: number) => void;
-  onViewLogsClick: () => void;
 }
 
 export function TripMap({
@@ -24,7 +85,6 @@ export function TripMap({
   stops,
   selectedStopId,
   onStopClick,
-  onViewLogsClick,
 }: TripMapProps) {
   const mapRef = useRef<LeafletMap | null>(null);
 
@@ -47,24 +107,18 @@ export function TripMap({
     ];
   }, [visibleStops]);
 
-  useEffect(() => {
-    if (!mapRef.current || selectedStopId === null) {
+  const selectedStop = useMemo(
+    () => (selectedStopId !== null ? visibleStops.find((s) => s.id === selectedStopId) : undefined),
+    [selectedStopId, visibleStops],
+  );
+
+  const handleFitRoute = useCallback(() => {
+    if (!mapRef.current || !bounds) {
       return;
     }
-
-    const selected = visibleStops.find((stop) => stop.id === selectedStopId);
-    if (!selected) {
-      return;
-    }
-
-    mapRef.current.setView(
-      {
-        lat: selected.latitude,
-        lng: selected.longitude,
-      },
-      STOP_ZOOM,
-    );
-  }, [selectedStopId, visibleStops]);
+    mapRef.current.invalidateSize();
+    mapRef.current.fitBounds(bounds, FIT_BOUNDS_OPTIONS);
+  }, [bounds]);
 
   return (
     <div className="relative h-full w-full">
@@ -72,11 +126,11 @@ export function TripMap({
         ref={mapRef}
         center={[DEFAULT_CENTER.lat, DEFAULT_CENTER.lng]}
         zoom={DEFAULT_ZOOM}
-        bounds={bounds}
         className="h-full w-full rounded-lg"
         scrollWheelZoom
         aria-label="Trip route map"
       >
+        <MapController bounds={bounds} selectedStop={selectedStop} />
         <TileLayer url={TILE_URL} attribution={TILE_ATTRIBUTION} />
         <RoutePolyline polyline={route.polyline} />
         {visibleStops.map((stop) => (
@@ -89,34 +143,34 @@ export function TripMap({
         ))}
       </MapContainer>
 
-      <div className="absolute bottom-4 left-4 z-20 rounded-lg border border-slate-200 bg-white p-3 shadow-lg">
-        <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">
+      {bounds && (
+        <button
+          type="button"
+          onClick={handleFitRoute}
+          className="absolute bottom-6 right-4 z-20 flex h-10 w-10 items-center justify-center rounded-lg border border-slate-300 bg-white shadow-lg hover:bg-slate-50 active:bg-slate-100"
+          title="Fit route in view"
+          aria-label="Fit route in view"
+        >
+          <LocateFixed className="h-5 w-5 text-slate-700" />
+        </button>
+      )}
+
+      <div className="absolute bottom-6 left-4 z-20 rounded-lg border border-slate-200 bg-white/95 px-3 py-2 shadow-lg backdrop-blur-sm">
+        <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">
           Legend
         </p>
-        <div className="mt-1.5 grid grid-cols-2 gap-x-4 gap-y-1">
-          {[
-            { emoji: "\u{1F7E2}", label: "Start" },
-            { emoji: "\u{1F534}", label: "Drop-off" },
-            { emoji: "\u{1F4E6}", label: "Pickup" },
-            { emoji: "\u26FD", label: "Fuel Stop" },
-            { emoji: "\u2615", label: "Rest Break" },
-            { emoji: "\u{1F6CF}\uFE0F", label: "Mandatory Rest" },
-            { emoji: "\u{1F504}", label: "Cycle Reset" },
-          ].map((item) => (
-            <div key={item.label} className="flex items-center gap-1.5 text-xs text-slate-600">
-              <span className="text-sm">{item.emoji}</span>
+        <div className="mt-1 grid grid-cols-2 gap-x-4 gap-y-0.5">
+          {LEGEND_ITEMS.map((item) => (
+            <div key={item.label} className="flex items-center gap-1.5 text-[11px] text-slate-600">
+              <span
+                className="inline-block h-2.5 w-2.5 shrink-0 rounded-full"
+                style={{ backgroundColor: item.color }}
+              />
               <span>{item.label}</span>
             </div>
           ))}
         </div>
       </div>
-
-      <div className="absolute bottom-4 right-4 z-20">
-        <Button variant="primary" onClick={onViewLogsClick}>
-          View Daily Log Sheets →
-        </Button>
-      </div>
     </div>
   );
 }
-

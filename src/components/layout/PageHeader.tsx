@@ -41,7 +41,7 @@ export default function PageHeader() {
   };
 
   return (
-    <header className="sticky top-0 z-30 border-b border-slate-200 bg-white print-hide">
+    <header className="sticky top-0 z-[2000] border-b border-slate-200 bg-white print-hide">
       <div className="flex items-center justify-between px-4 py-3">
         <div className="flex items-center gap-3 min-w-0">
           {!isDashboard && (

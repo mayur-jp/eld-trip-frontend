@@ -49,7 +49,7 @@ export default function AppShell() {
 
       <div className={APP_MAIN}>
         {/* Mobile-only hamburger bar */}
-        <div className="sticky top-0 z-30 h-12 border-b border-slate-200 bg-white px-4 flex items-center lg:hidden">
+          <div className="sticky top-0 z-[2000] h-12 border-b border-slate-200 bg-white px-4 flex items-center lg:hidden">
           <button
             type="button"
             className="inline-flex items-center justify-center h-9 w-9 rounded-md border border-slate-300 text-slate-700 hover:bg-slate-50"

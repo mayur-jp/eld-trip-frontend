@@ -68,10 +68,6 @@ export default function TripDetailsPage() {
     setSelectedStopId(stopId);
   };
 
-  const handleViewLogsClick = () => {
-    navigate(`/app/trips/${tripId}/logs`);
-  };
-
   const sortedStops = [...trip.stops].sort((a, b) => a.id - b.id);
   const origin = sortedStops[0]?.locationName ?? "";
   const destination = sortedStops[sortedStops.length - 1]?.locationName ?? "";
